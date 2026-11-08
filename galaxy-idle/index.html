@@ -13,35 +13,56 @@
     <button onclick="recolter(1)">Récolter</button>
     <button onclick="recolter(5)">Récolter par 5</button>
 
-    <p>Sondes : <span id="sondes">0</span></p>
-    <button onclick="acheterSonde()">Acheter une sonde (<span id="prixSonde">10</span> poussières)</button>
-    <p>Production des sondes : <span id="production">0</span>/seconde</p>
-
-    <p>Satellites : <span id="satellites">0</span></p>
-    <button onclick="acheterSatellite()">Acheter un satellite (<span id="prixSatellite">100</span> poussières)</button>
-    <p>Production des satellites : <span id="productionSatellite">0</span>/seconde</p>
+    <!-- Les bâtiments sont créés automatiquement à partir de la liste en JavaScript -->
+    <div id="batiments"></div>
 
     <script>
         let poussiere = 0;
-        let sondes = 0;
-        let prixSonde = 10;
-        let productionParSonde = 1;
-        let satellites = 0;
-        let prixSatellite = 100;
-        let productionParSatellite = 8;
+
+        // Pour ajouter un nouvel objet à acheter, il suffit d'ajouter une ligne ici !
+        const batiments = [
+            { id: "sonde",     nom: "Sonde",            pluriel: "Sondes",             prix: 10,      production: 1,    quantite: 0 },
+            { id: "satellite", nom: "Satellite",        pluriel: "Satellites",         prix: 100,     production: 8,    quantite: 0 },
+            { id: "station",   nom: "Station spatiale", pluriel: "Stations spatiales", prix: 1100,    production: 47,   quantite: 0 },
+            { id: "vaisseau",  nom: "Vaisseau minier",  pluriel: "Vaisseaux miniers",  prix: 12000,   production: 260,  quantite: 0 },
+            { id: "colonie",   nom: "Colonie lunaire",  pluriel: "Colonies lunaires",  prix: 130000,  production: 1400, quantite: 0 },
+            { id: "dyson",     nom: "Sphère de Dyson",  pluriel: "Sphères de Dyson",   prix: 1400000, production: 7800, quantite: 0 },
+        ];
+
+        const MULTIPLICATEUR_PRIX = 1.15;
+
+        // Crée le HTML (texte + bouton) de chaque bâtiment, une seule fois au démarrage
+        function creerBatiments() {
+            const conteneur = document.getElementById("batiments");
+            for (const batiment of batiments) {
+                conteneur.innerHTML += `
+                    <p>${batiment.pluriel} : <span id="quantite-${batiment.id}">0</span>
+                       (production : <span id="production-${batiment.id}">0</span>/seconde)</p>
+                    <button id="bouton-${batiment.id}" onclick="acheter('${batiment.id}')">
+                        Acheter : ${batiment.nom} (<span id="prix-${batiment.id}">${batiment.prix}</span> poussières)
+                    </button>`;
+            }
+        }
+
+        function productionTotale() {
+            let total = 0;
+            for (const batiment of batiments) {
+                total += batiment.quantite * batiment.production;
+            }
+            return total;
+        }
 
         function afficher() {
-            const productionSondes = sondes * productionParSonde;
-            const productionSatellites = satellites * productionParSatellite;
-
             document.getElementById("poussiere").textContent = Math.floor(poussiere);
-            document.getElementById("productionTotale").textContent = productionSondes + productionSatellites;
-            document.getElementById("sondes").textContent = sondes;
-            document.getElementById("production").textContent = productionSondes;
-            document.getElementById("prixSonde").textContent = Math.ceil(prixSonde);
-            document.getElementById("satellites").textContent = satellites;
-            document.getElementById("prixSatellite").textContent = Math.ceil(prixSatellite);
-            document.getElementById("productionSatellite").textContent = productionSatellites;
+            document.getElementById("productionTotale").textContent = productionTotale();
+
+            for (const batiment of batiments) {
+                document.getElementById("quantite-" + batiment.id).textContent = batiment.quantite;
+                document.getElementById("production-" + batiment.id).textContent = batiment.quantite * batiment.production;
+                document.getElementById("prix-" + batiment.id).textContent = Math.ceil(batiment.prix);
+                // Le bouton est grisé si on n'a pas assez de poussières
+                document.getElementById("bouton-" + batiment.id).disabled = poussiere < batiment.prix;
+            }
         }
 
         function recolter(quantite) {
@@ -49,22 +70,12 @@
             afficher();
         }
 
-        function acheterSonde() {
-            if (poussiere >= prixSonde) {
-                poussiere -= prixSonde;
-                sondes += 1;
-                prixSonde *= 1.15;
-                afficher();
-            } else {
-                console.log("Pas assez de poussières !");
-            }
-        }
-
-        function acheterSatellite() {
-            if (poussiere >= prixSatellite) {
-                poussiere -= prixSatellite;
-                satellites += 1;
-                prixSatellite *= 1.15;
+        function acheter(id) {
+            const batiment = batiments.find(b => b.id === id);
+            if (poussiere >= batiment.prix) {
+                poussiere -= batiment.prix;
+                batiment.quantite += 1;
+                batiment.prix *= MULTIPLICATEUR_PRIX;
                 afficher();
             } else {
                 console.log("Pas assez de poussières !");
@@ -73,10 +84,12 @@
 
         // Appelée 10 fois par seconde : on ajoute donc 1/10 de la production par seconde
         function produire() {
-            poussiere += (sondes * productionParSonde + satellites * productionParSatellite) / 10;
+            poussiere += productionTotale() / 10;
             afficher();
         }
 
+        creerBatiments();
+        afficher();
         setInterval(produire, 100);
     </script>
 </body>
