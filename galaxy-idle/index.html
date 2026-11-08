@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Galaxy Idle</title>
+</head>
+
+<body>
+    <h1>Galaxy Idle</h1>
+    <p>Poussières d'étoiles : <span id="poussiere">0</span></p>
+    <p>Production totale : <span id="productionTotale">0</span>/seconde</p>
+    <button onclick="recolter(1)">Récolter</button>
+    <button onclick="recolter(5)">Récolter par 5</button>
+
+    <p>Sondes : <span id="sondes">0</span></p>
+    <button onclick="acheterSonde()">Acheter une sonde (<span id="prixSonde">10</span> poussières)</button>
+    <p>Production des sondes : <span id="production">0</span>/seconde</p>
+
+    <p>Satellites : <span id="satellites">0</span></p>
+    <button onclick="acheterSatellite()">Acheter un satellite (<span id="prixSatellite">100</span> poussières)</button>
+    <p>Production des satellites : <span id="productionSatellite">0</span>/seconde</p>
+
+    <script>
+        let poussiere = 0;
+        let sondes = 0;
+        let prixSonde = 10;
+        let productionParSonde = 1;
+        let satellites = 0;
+        let prixSatellite = 100;
+        let productionParSatellite = 8;
+
+        function afficher() {
+            const productionSondes = sondes * productionParSonde;
+            const productionSatellites = satellites * productionParSatellite;
+
+            document.getElementById("poussiere").textContent = Math.floor(poussiere);
+            document.getElementById("productionTotale").textContent = productionSondes + productionSatellites;
+            document.getElementById("sondes").textContent = sondes;
+            document.getElementById("production").textContent = productionSondes;
+            document.getElementById("prixSonde").textContent = Math.ceil(prixSonde);
+            document.getElementById("satellites").textContent = satellites;
+            document.getElementById("prixSatellite").textContent = Math.ceil(prixSatellite);
+            document.getElementById("productionSatellite").textContent = productionSatellites;
+        }
+
+        function recolter(quantite) {
+            poussiere += quantite;
+            afficher();
+        }
+
+        function acheterSonde() {
+            if (poussiere >= prixSonde) {
+                poussiere -= prixSonde;
+                sondes += 1;
+                prixSonde *= 1.15;
+                afficher();
+            } else {
+                console.log("Pas assez de poussières !");
+            }
+        }
+
+        function acheterSatellite() {
+            if (poussiere >= prixSatellite) {
+                poussiere -= prixSatellite;
+                satellites += 1;
+                prixSatellite *= 1.15;
+                afficher();
+            } else {
+                console.log("Pas assez de poussières !");
+            }
+        }
+
+        // Appelée 10 fois par seconde : on ajoute donc 1/10 de la production par seconde
+        function produire() {
+            poussiere += (sondes * productionParSonde + satellites * productionParSatellite) / 10;
+            afficher();
+        }
+
+        setInterval(produire, 100);
+    </script>
+</body>
+
+</html>
